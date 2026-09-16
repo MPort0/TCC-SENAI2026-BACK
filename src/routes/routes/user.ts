@@ -5,15 +5,15 @@ import prisma from "../../prismaClient";
 const router = Router()
 
 //cadastrar usuário
-router.post("/cadastro/user", async (req: Request, res: Response) => {
+router.post("/cadastro", async (req: Request, res: Response) => {
     const { email, password, name } = req.body;
 
     if (!email || !password || !name) {
         return res.status(400).json({ error: 'Todos os campos são obrigatórios: email, password, name, rm, curso, telNumero' });
     }
 
-    if (typeof password !== 'string' || password.length <= 8) {
-        return res.status(400).json({ error: 'A senha deve ter mais de 8 caracteres' });
+    if (typeof password !== 'string' || password.length <= 7) {
+        return res.status(400).json({ error: 'A senha deve ter ao menos 8 caracteres' });
     }
 
     const usuarioExistente = await prisma.user.findUnique({ where: { email } });
@@ -27,7 +27,7 @@ router.post("/cadastro/user", async (req: Request, res: Response) => {
         data: {
             email,
             password: passwordHash,
-            name
+name
         }
     });
 
@@ -35,7 +35,7 @@ router.post("/cadastro/user", async (req: Request, res: Response) => {
 });
 
 //Login do usuario
-router.post("/login/user", async (req: Request, res: Response) => {
+router.post("/login", async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
