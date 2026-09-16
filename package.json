@@ -1,0 +1,39 @@
+{
+  "name": "tcc-senai2026-back",
+  "version": "1.0.0",
+  "description": "readme\r readme",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "tsx --watch src/server.ts",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MPort0/TCC-SENAI2026-BACK.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MPort0/TCC-SENAI2026-BACK/issues"
+  },
+  "homepage": "https://github.com/MPort0/TCC-SENAI2026-BACK#readme",
+  "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.10.0",
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^13.0.3",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@prisma/client": "^7.10.0",
+    "@types/bcrypt": "^6.0.0",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.5.1",
+    "prisma": "^7.10.0",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3"
+  }
+}
