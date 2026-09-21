@@ -17,5 +17,4 @@ model user {
   name String 
   email String @unique
   password String
-
 }
