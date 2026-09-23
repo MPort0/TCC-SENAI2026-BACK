@@ -27,7 +27,7 @@ router.post("/cadastro", async (req: Request, res: Response) => {
         data: {
             email,
             password: passwordHash,
-name
+            name
         }
     });
 
@@ -67,6 +67,7 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 })
 
+//lista usuarios
 router.get("/users", async (req: Request, res: Response) => {
     try {
         const usuarios = await prisma.user.findMany();
