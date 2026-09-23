@@ -27,7 +27,7 @@ router.post("/cadastro", async (req: Request, res: Response) => {
         data: {
             email,
             password: passwordHash,
-name
+            name
         }
     });
 
@@ -66,5 +66,16 @@ router.post("/login", async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Erro interno ao fazer login' });
     }
 })
+
+//lista usuarios
+router.get("/users", async (req: Request, res: Response) => {
+    try {
+        const usuarios = await prisma.user.findMany();
+        return res.json({ usuarios });
+    } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+        return res.status(500).json({ error: 'Erro interno ao buscar usuários' });
+    }
+});
 
 export default router;
