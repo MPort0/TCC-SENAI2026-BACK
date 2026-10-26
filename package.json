@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/MPort0/TCC-SENAI2026-BACK#readme",
   "dependencies": {
+    "@google/genai": "^2.30.0",
     "@prisma/adapter-better-sqlite3": "^7.10.0",
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^13.0.3",
