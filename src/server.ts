@@ -3,7 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import api from "./routes/routes/user";
 import api2 from "./routes/routes/perfil";
-import apiIA from "./routes/routes/ia"
+import apiIA from "./routes/routes/ia";
+import apiSimulacao from "./routes/routes/iaSimulacaoRoutes"; // 1. Importa a nova rota
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use("/", api);
 app.use("/", api2);
 app.use("/ia", apiIA); 
+app.use("/ia", apiSimulacao); // 2. Registra a rota de simulação sob o prefixo /ia
 
 const PORT = process.env.PORT || 3000;
 

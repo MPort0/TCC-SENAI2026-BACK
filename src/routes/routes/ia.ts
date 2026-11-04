@@ -1,6 +1,6 @@
 // src/routes/routes/ia.ts
 import { Router, Request, Response } from 'express';
-import { gerarRespostaIA } from '../../iaService';
+import { gerarRespostaIA } from '../../iaChat';
 
 const iaRouter = Router();
 
