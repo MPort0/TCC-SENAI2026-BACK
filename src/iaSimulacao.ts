@@ -20,58 +20,94 @@ export interface EntrevistaConfig {
     cargo: string;
     tecnologia: string;
     dificuldade: string;
+    totalPerguntas?: number;
+}
+
+export interface RelatorioDevolutiva {
+    resumo: string;
+    competencias: {
+        fundamentais: { nivel: string; porcentagem: number };
+        pratica: { nivel: string; porcentagem: number };
+    };
+    pontosFortes: string[];
+    principaisErros: string[];
+    sugestoesEstudo: string[];
 }
 
 export interface ResultadoSimulacao {
     texto: string;
     respostaValida: boolean;
+    concluida: boolean;
+    relatorio?: RelatorioDevolutiva;
     modelo: string;
     historicoAtualizado: Content[];
 }
 
-function gerarInstrucaoSimulacao(config?: EntrevistaConfig): string {
+function gerarInstrucaoSimulacao(config?: EntrevistaConfig, passoAtual: number = 1): string {
     const cargo = config?.cargo || "Desenvolvedor";
     const tecnologia = config?.tecnologia || "Tecnologia Geral";
     const dificuldade = config?.dificuldade || "Júnior";
 
-    return `Você é a Lia, a assistente virtual do Avalia.
+    const totalPerguntas = config?.totalPerguntas || 10;
+    const ehUltimaPergunta = passoAtual >= totalPerguntas;
+
+    return `Você é a Ava.Lia, recrutadora e entrevistadora técnica do sistema Avalia.
 Sua missão é conduzir uma simulação de entrevista técnica realista.
 
 Configurações da Entrevista:
 - Cargo Alvo: ${cargo}
 - Tecnologia Foco: ${tecnologia}
 - Nível de Dificuldade: ${dificuldade}
+- Passo Atual: ${passoAtual} de ${totalPerguntas}
 
-REGRAS OBRIGATÓRIAS DE RESPOSTA:
-1. Responda ESTRITAMENTE em formato JSON com as chaves:
+REGRAS OBRIGATÓRIAS DE RESPOSTA (JSON):
+1. Responda ESTRITAMENTE em formato JSON com a seguinte estrutura:
    {
      "respostaValida": true ou false,
-     "texto": "Sua resposta completa para o candidato..."
+     "concluida": ${ehUltimaPergunta ? "true" : "false"},
+     "texto": "Sua resposta completa para o candidato...",
+     "relatorio": ${ehUltimaPergunta ? "objeto JSON de avaliação final" : "null"}
    }
 
-2. Regra de "respostaValida":
-   - Se a mensagem do usuário for "INICIAR_ENTREVISTA": marque "respostaValida": false (pois é apenas a abertura).
-   - Se o candidato TENTOU responder à pergunta técnica anterior (seja a resposta correta, parcial ou errada): marque "respostaValida": true.
-   - Se o candidato enviou testes, cumprimentos, desvios de assunto, "não sei" ou mensagens irrelevantes: marque "respostaValida": false.
-   - Se o candidato TENTOU responder OU disse que NÃO SABE / NÃO LEMBRA (ex: "não sei", "não me recordo", "passo", "não faço ideia", "pula essa"): marque "respostaValida": TRUE. Afinal, responder que não sabe encerra o ciclo dessa pergunta.
+2. Regras para "respostaValida":
+   - Se a mensagem do usuário for "INICIAR_ENTREVISTA": marque "respostaValida": false (abertura da conversa).
+   - Se o candidato TENTOU responder OU disse que NÃO SABE / NÃO LEMBRA (ex: "não sei", "passo", "não lembro"): marque "respostaValida": true.
+   - Marque "respostaValida": false APENAS para desvios completos de assunto (ex: "oi", "tudo bem?", testes de texto sem relação com a entrevista).
 
-3. No campo "texto":
-   - Se "respostaValida": true -> Dê um breve feedback sobre a resposta dada e faça a PRÓXIMA pergunta técnica sobre ${tecnologia}.
-   - Se "respostaValida": false -> Se for o início, apresente-se e faça a primeira pergunta. Caso seja um desvio, peça educadamente para focar na questão e repita a pergunta anterior.`;
+3. Regras para o campo "texto":
+   - Se "respostaValida" = false: Peça educadamente para focar na entrevista e repita a pergunta anterior.
+   - Se "respostaValida" = true E AINDA NÃO É O ÚLTIMO PASSO (passo < ${totalPerguntas}): Dê um breve feedback/explicação sobre a resposta dada e faça a PRÓXIMA pergunta técnica sobre ${tecnologia}.
+   - Se "respostaValida" = true E É O ÚLTIMO PASSO (passo >= ${totalPerguntas}): Dê um breve feedback da resposta dada, encerre a entrevista de forma amigável parabenizando o candidato e avise que o relatório final está pronto. NÃO FAÇA NOVAS PERGUNTAS!
+
+4. Regras para o campo "relatorio" (OBRIGATÓRIO quando "concluida" = true):
+   Construa um relatório profundo baseado em todo o histórico de respostas do candidato contendo exatamente esta estrutura:
+   {
+     "resumo": "Texto corrido detalhado analisando a performance geral do candidato para o topo da página de devolutiva.",
+     "competencias": {
+       "fundamentais": { "nivel": "Bom", "porcentagem": 75 },
+       "pratica": { "nivel": "Regular", "porcentagem": 50 }
+     },
+     "pontosFortes": ["Item 1", "Item 2"],
+     "principaisErros": ["Item 1", "Item 2"],
+     "sugestoesEstudo": ["Item 1", "Item 2"]
+   }`;
 }
 
-function extrairJson(respostaIA: string): { texto: string; respostaValida: boolean } {
+function extrairJson(respostaIA: string): { texto: string; respostaValida: boolean; concluida: boolean; relatorio?: RelatorioDevolutiva } {
     try {
         const limpo = respostaIA.replace(/```json|```/g, '').trim();
         const parsed = JSON.parse(limpo);
         return {
             texto: parsed.texto || respostaIA,
-            respostaValida: Boolean(parsed.respostaValida)
+            respostaValida: Boolean(parsed.respostaValida),
+            concluida: Boolean(parsed.concluida),
+            relatorio: parsed.relatorio || undefined
         };
     } catch {
         return {
             texto: respostaIA,
-            respostaValida: false
+            respostaValida: false,
+            concluida: false
         };
     }
 }
@@ -102,14 +138,15 @@ function adicionarAoHistoricoGemini(historicoAnterior: Content[], usuario: strin
 export async function gerarRespostaSimulacao(
     mensagemUsuario: string,
     historicoAnterior: Content[] = [],
-    config?: EntrevistaConfig
+    config?: EntrevistaConfig,
+    passoAtual: number = 1
 ): Promise<ResultadoSimulacao> {
 
-    const instrucaoSistema = gerarInstrucaoSimulacao(config);
+    const instrucaoSistema = gerarInstrucaoSimulacao(config, passoAtual);
 
     // 1. TENTATIVA PRINCIPAL: gemini-3.8-flash
     try {
-        console.log("Chamando simulação em cascata: gemini-3.8-flash...");
+        console.log(`Chamando simulação em cascata: gemini-3.8-flash (Passo ${passoAtual})...`);
 
         const chat = ai.chats.create({
             model: 'gemini-3.8-flash',
@@ -122,11 +159,13 @@ export async function gerarRespostaSimulacao(
 
         const response = await chat.sendMessage({ message: mensagemUsuario });
         const novoHistorico = await chat.getHistory();
-        const { texto, respostaValida } = extrairJson(response.text || '');
+        const { texto, respostaValida, concluida, relatorio } = extrairJson(response.text || '');
 
         return {
             texto,
             respostaValida,
+            concluida,
+            relatorio,
             modelo: "gemini-3.8-flash (Principal)",
             historicoAtualizado: novoHistorico
         };
@@ -166,13 +205,15 @@ export async function gerarRespostaSimulacao(
             };
 
             const rawContent = dadosGroq.choices?.[0]?.message?.content || "{}";
-            const { texto: textoLlama, respostaValida: respostaValidaLlama } = extrairJson(rawContent);
+            const { texto: textoLlama, respostaValida: respostaValidaLlama, concluida: concluidaLlama, relatorio: relatorioLlama } = extrairJson(rawContent);
 
             const historicoAtualizadoLlama = adicionarAoHistoricoGemini(historicoAnterior, mensagemUsuario, textoLlama);
 
             return {
                 texto: textoLlama,
                 respostaValida: respostaValidaLlama,
+                concluida: concluidaLlama,
+                relatorio: relatorioLlama,
                 modelo: "Groq (Segunda Via)",
                 historicoAtualizado: historicoAtualizadoLlama
             };
@@ -193,11 +234,13 @@ export async function gerarRespostaSimulacao(
 
                 const responseFallback = await chatFallback.sendMessage({ message: mensagemUsuario });
                 const novoHistoricoFallback = await chatFallback.getHistory();
-                const { texto: textoFb, respostaValida: respostaValidaFb } = extrairJson(responseFallback.text || '');
+                const { texto: textoFb, respostaValida: respostaValidaFb, concluida: concluidaFb, relatorio: relatorioFb } = extrairJson(responseFallback.text || '');
 
                 return {
                     texto: textoFb,
                     respostaValida: respostaValidaFb,
+                    concluida: concluidaFb,
+                    relatorio: relatorioFb,
                     modelo: "gemini-3.5-flash-lite (Fallback Final)",
                     historicoAtualizado: novoHistoricoFallback
                 };
