@@ -48,7 +48,7 @@ function gerarInstrucaoSimulacao(config?: EntrevistaConfig, passoAtual: number =
     const tecnologia = config?.tecnologia || "Tecnologia Geral";
     const dificuldade = config?.dificuldade || "Júnior";
 
-    const totalPerguntas = config?.totalPerguntas || 10;
+    const totalPerguntas = config?.totalPerguntas || 5;
     const ehUltimaPergunta = passoAtual >= totalPerguntas;
 
     return `Você é a Ava.Lia, recrutadora e entrevistadora técnica do sistema Avalia.

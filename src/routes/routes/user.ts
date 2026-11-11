@@ -67,6 +67,39 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 })
 
+//redefinir senha 
+router.post("/redefinir", async (req: Request, res: Response) => {
+    try {
+        const { email, password, confirmPassword } = req.body
+        const user = await prisma.user.findUnique({ where: { email } })
+
+        if (!email || !password || !confirmPassword) {
+            return res.status(400).json({ error: "Preencha todos os campos!" })
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({ error: "As senhas não coincidem" })
+        }
+
+        if (!user) {
+            return res.status(404).json({ error: " Email não encontrado! " })
+        }
+
+        const novaPassword = await bcrypt.hash(password, 10);
+
+        await prisma.user.update({
+            where: { email },
+            data: {
+                password: novaPassword
+            }
+        });
+
+        return res.status(200).json({ message: "Senha alterada com sucesso" })
+    } catch (error) {
+        return res.status(400).json({ error: " Erro interno no servidor" })
+    }
+})
+
 //lista usuarios
 router.get("/users", async (req: Request, res: Response) => {
     try {

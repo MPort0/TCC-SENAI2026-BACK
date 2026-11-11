@@ -1,6 +1,7 @@
-POST http://localhost:3000/ia
+POST  http://localhost:8080/login
 Content-Type: application/json
 
 {
-    "mensagem": "Olá Gemini, responda se esta funcionando e me diga a sua versão"
+    "email": "arthur1@email.com",
+    "password": "Tatu022#"
 }
