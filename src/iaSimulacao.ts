@@ -76,7 +76,7 @@ REGRAS OBRIGATÓRIAS DE RESPOSTA (JSON):
 
 3. Regras para o campo "texto":
    - Se "respostaValida" = false: Peça educadamente para focar na entrevista e repita a pergunta anterior.
-   - Se "respostaValida" = true E AINDA NÃO É O ÚLTIMO PASSO (passo < ${totalPerguntas}): Dê um breve feedback/explicação sobre a resposta dada e faça a PRÓXIMA pergunta técnica sobre ${tecnologia}.
+   - Se "respostaValida" = true E AINDA NÃO É O ÚLTIMO PASSO (passo < ${totalPerguntas}): Dê um breve feedback/explicação sobre a resposta dada e faça a PRÓXIMA pergunta técnica sobre ${tecnologia}. pule 1 linha do feedback para a proxima pergunta.
    - Se "respostaValida" = true E É O ÚLTIMO PASSO (passo >= ${totalPerguntas}): Dê um breve feedback da resposta dada, encerre a entrevista de forma amigável parabenizando o candidato e avise que o relatório final está pronto. NÃO FAÇA NOVAS PERGUNTAS!
 
 4. Regras para o campo "relatorio" (OBRIGATÓRIO quando "concluida" = true):
