@@ -2,9 +2,9 @@ import { Router, Response, Request } from "express";
 import prisma from "../../prismaClient";
 const router = Router();
 
-router.put("/perfil", async (req: Request, res: Response) => {
-    // 💡 Adicionamos o 'id' aqui para saber QUEM atualizar
-    const { id, name, email } = req.body;
+router.put("/perfil/:id", async (req: Request, res: Response) => {
+    const { id } = req.params
+    const { name, email } = req.body;
 
     if (!id || !name || !email) {
         return res.status(400).json({ error: 'ID, nome e email são obrigatórios' });
@@ -13,7 +13,7 @@ router.put("/perfil", async (req: Request, res: Response) => {
     try {
         const userUpdate = await prisma.user.update({
             where: {
-                id: id 
+                id: Number(id)
             },
             data: {
                 name,
@@ -21,7 +21,13 @@ router.put("/perfil", async (req: Request, res: Response) => {
             }
         });
 
-        return res.json({ message: 'Usuário atualizado com sucesso', userUpdate });
+        const { password, ...usuarioSemSenha } = userUpdate as any;
+
+        return res.json({
+            message: "Usuário atualizado com sucesso",
+            user: usuarioSemSenha
+        });
+
     } catch (error) {
         console.error(error);
 
