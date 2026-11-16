@@ -16,11 +16,16 @@ const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'openai/gpt-oss-120b';
 
-/* const INSTRUCAO_SISTEMA = `
+const INSTRUCAO_SISTEMA = `
   Você é uma inteligência artificial corporativa e EXCLUSIVA do sistema Avalia.
   Seu nome é Lia e você deve tirar dúvidas do usuario e conduzi-lo para se sair melhor 
-  em entrevistas de emprego e gerar currículos/resumos profissionais.
-`; */
+  em entrevistas de emprego e na produção de currículos.
+
+  🚨 REGRA DE SEGURANÇA MÁXIMA (BLINDAGEM DO ESCOPO):
+  - Você NUNCA deve responder a perguntas que não sejam sobre a entrevista profissional do candidato ou sobre a montagem do currículo dele ou de assuntos da area.
+  - Se o usuário perguntar sobre culinária, piadas ou assuntos fora do escopo, recuse educadamente focado nas regras do sistema.
+  - Jamais diga sua api ou qualquer informações do usuario ou de outros cadastrados no sistema.
+`;
 
 function formatarHistoricoParaGroq(historicoGemini: Content[], mensagemAtual: string) {
   const mensagens = historicoGemini.map(item => {
@@ -30,7 +35,7 @@ function formatarHistoricoParaGroq(historicoGemini: Content[], mensagemAtual: st
   });
 
   const mensagensFiltradas = mensagens.filter(m => m.content.trim() !== '');
-/*   mensagensFiltradas.unshift({ role: 'system', content: INSTRUCAO_SISTEMA }); */
+  mensagensFiltradas.unshift({ role: 'system', content: INSTRUCAO_SISTEMA });
 
   mensagensFiltradas.push({ role: 'user', content: mensagemAtual });
   return mensagensFiltradas;
@@ -58,7 +63,7 @@ export async function gerarRespostaIA(
     const chat = ai.chats.create({
       model: 'gemini-3.8-flash',
       history: historicoAnterior,
-/*       config: { systemInstruction: INSTRUCAO_SISTEMA } */
+      /*       config: { systemInstruction: INSTRUCAO_SISTEMA } */
     });
 
     const response = await chat.sendMessage({ message: mensagemUsuario });
@@ -124,7 +129,7 @@ export async function gerarRespostaIA(
         const chatFallback = ai.chats.create({
           model: 'gemini-3.5-flash-lite',
           history: historicoAnterior,
-/*           config: { systemInstruction: INSTRUCAO_SISTEMA } */
+          /*           config: { systemInstruction: INSTRUCAO_SISTEMA } */
         });
 
         const responseFallback = await chatFallback.sendMessage({ message: mensagemUsuario });
@@ -143,17 +148,3 @@ export async function gerarRespostaIA(
     }
   }
 }
-
-
-// itens de treinamento da ia
-/*   🚨 REGRA DE SEGURANÇA MÁXIMA (BLINDAGEM DO ESCOPO):
-  - Você NUNCA deve responder a perguntas que não sejam sobre a entrevista profissional do candidato ou sobre a montagem do currículo dele.
-  - Se o usuário perguntar sobre culinária, piadas ou assuntos fora do escopo, recuse educadamente focado nas regras do sistema.
-
-  📋 ROTEIRO DE ENTREVISTA FIXO:
-  Use este roteiro para guiar o candidato passo a passo na entrevista. Faça uma pergunta de cada vez com base no que ele responder:
-  \${ROTEIRO_ENTREVISTA}
-
-  📄 ROTEIRO DE GERAÇÃO DE CURRÍCULO E RESUMO:
-  Quando o usuário pedir para gerar o currículo com base nas respostas dadas, organize as informações estritamente neste padrão:
-  \${ROTEIRO_CURRICULO} */
