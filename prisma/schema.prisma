@@ -18,6 +18,7 @@ model user {
   email       String       @unique
   password    String
   devolutivas devolutiva[]
+  curriculos  curriculo[]
 }
 
 model devolutiva {
@@ -36,6 +37,21 @@ model devolutiva {
   principaisErros         String // JSON string
   sugestoesEstudo         String // JSON string
   criadoEm                DateTime @default(now())
+
+  user user @relation(fields: [userId], references: [id])
+}
+
+model curriculo {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  nome        String
+  cargo       String
+  contato     String
+  resumo      String
+  experiencia String
+  formacao    String
+  habilidades String // JSON string
+  criadoEm    DateTime @default(now())
 
   user user @relation(fields: [userId], references: [id])
 }
