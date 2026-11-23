@@ -57,13 +57,47 @@ router.post("/login", async (req: Request, res: Response) => {
         return res.json({
             message: 'Login realizado com sucesso',
             user: {
+                id: user.id,
                 email: user.email,
-                name: user.name,
+                name: user.name
             },
         });
     } catch (error) {
         console.error('Erro ao fazer login:', error);
         return res.status(500).json({ error: 'Erro interno ao fazer login' });
+    }
+})
+
+//redefinir senha 
+router.post("/redefinir", async (req: Request, res: Response) => {
+    try {
+        const { email, password, confirmPassword } = req.body
+        const user = await prisma.user.findUnique({ where: { email } })
+
+        if (!email || !password || !confirmPassword) {
+            return res.status(400).json({ error: "Preencha todos os campos!" })
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({ error: "As senhas não coincidem" })
+        }
+
+        if (!user) {
+            return res.status(404).json({ error: " Email não encontrado! " })
+        }
+
+        const novaPassword = await bcrypt.hash(password, 10);
+
+        await prisma.user.update({
+            where: { email },
+            data: {
+                password: novaPassword
+            }
+        });
+
+        return res.status(200).json({ message: "Senha alterada com sucesso" })
+    } catch (error) {
+        return res.status(400).json({ error: " Erro interno no servidor" })
     }
 })
 

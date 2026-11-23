@@ -13,8 +13,45 @@ datasource db {
 }
 
 model user {
-  id Int @id @default(autoincrement())
-  name String 
-  email String @unique
-  password String
+  id          Int          @id @default(autoincrement())
+  name        String
+  email       String       @unique
+  password    String
+  devolutivas devolutiva[]
+  curriculos  curriculo[]
+}
+
+model devolutiva {
+  id                      Int      @id @default(autoincrement())
+  userId                  Int
+  cargo                   String
+  tecnologia              String
+  dificuldade             String
+  nota                    Float
+  resumo                  String
+  fundamentaisNivel       String
+  fundamentaisPorcentagem Int
+  praticaNivel            String
+  praticaPorcentagem      Int
+  pontosFortes            String // JSON string
+  principaisErros         String // JSON string
+  sugestoesEstudo         String // JSON string
+  criadoEm                DateTime @default(now())
+
+  user user @relation(fields: [userId], references: [id])
+}
+
+model curriculo {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  nome        String
+  cargo       String
+  contato     String
+  resumo      String
+  experiencia String
+  formacao    String
+  habilidades String // JSON string
+  criadoEm    DateTime @default(now())
+
+  user user @relation(fields: [userId], references: [id])
 }
