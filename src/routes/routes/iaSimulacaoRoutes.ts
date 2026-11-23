@@ -4,7 +4,7 @@ import { gerarRespostaSimulacao } from '../../iaSimulacao';
 
 const router = express.Router();
 
-// Rota da simulação existente
+// simulacao de entrevista
 router.post('/simulacao', async (req, res) => {
   try {
     const { mensagem, historico, config } = req.body;
