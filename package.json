@@ -4,9 +4,9 @@
   "description": "readme\r readme",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/server.js",
     "dev": "tsx --watch src/server.ts",
-    "build": "tsc"
+    "build": "npx prisma generate && tsc",
+    "start": "npx prisma db push --accept-data-loss && node dist/src/server.js"
   },
   "repository": {
     "type": "git",

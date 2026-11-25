@@ -5,6 +5,7 @@ import prisma from "../../prismaClient";
 const router = Router();
 
 // Cadastrar usuário
+// Cadastrar usuário
 router.post("/cadastro", async (req: Request, res: Response) => {
     const { email, password, name } = req.body;
 
@@ -16,22 +17,30 @@ router.post("/cadastro", async (req: Request, res: Response) => {
         return res.status(400).json({ error: 'A senha deve ter ao menos 8 caracteres' });
     }
 
-    const usuarioExistente = await prisma.user.findUnique({ where: { email } });
-    if (usuarioExistente) {
-        return res.status(400).json({ error: 'Email já cadastrado' });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
-        data: {
-            email,
-            password: passwordHash,
-            name
+    try {
+        const usuarioExistente = await prisma.user.findUnique({ where: { email } });
+        if (usuarioExistente) {
+            return res.status(400).json({ error: 'Email já cadastrado' });
         }
-    });
 
-    return res.status(201).json({ message: 'Usuário criado com sucesso', user });
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const user = await prisma.user.create({
+            data: {
+                email,
+                password: passwordHash,
+                name
+            }
+        });
+
+        return res.status(201).json({ message: 'Usuário criado com sucesso', user });
+    } catch (error: any) {
+        console.error('Erro detalhado ao cadastrar:', error);
+        return res.status(500).json({
+            error: 'Erro interno ao cadastrar usuário',
+            detalhe: error?.message || String(error)
+        });
+    }
 });
 
 // Login do usuário
