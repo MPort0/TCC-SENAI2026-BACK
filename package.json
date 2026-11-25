@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx --watch src/server.ts",
     "build": "npx prisma generate --config prisma7.config.ts && tsc",
-    "start": "npx prisma db push --config prisma7.config.ts --accept-data-loss && node dist/src/server.js"
+    "start": "node dist/src/server.js"
   },
   "repository": {
     "type": "git",
