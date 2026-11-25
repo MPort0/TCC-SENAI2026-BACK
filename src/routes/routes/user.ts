@@ -1,15 +1,15 @@
 import { Router, Response, Request } from "express";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 import prisma from "../../prismaClient";
 
-const router = Router()
+const router = Router();
 
-//cadastrar usuário
+// Cadastrar usuário
 router.post("/cadastro", async (req: Request, res: Response) => {
     const { email, password, name } = req.body;
 
     if (!email || !password || !name) {
-        return res.status(400).json({ error: 'Todos os campos são obrigatórios: email, password, name, rm, curso, telNumero' });
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios: email, password, name' });
     }
 
     if (typeof password !== 'string' || password.length <= 7) {
@@ -34,7 +34,7 @@ router.post("/cadastro", async (req: Request, res: Response) => {
     return res.status(201).json({ message: 'Usuário criado com sucesso', user });
 });
 
-//Login do usuario
+// Login do usuário
 router.post("/login", async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
@@ -59,56 +59,99 @@ router.post("/login", async (req: Request, res: Response) => {
             user: {
                 id: user.id,
                 email: user.email,
-                name: user.name
+                name: user.name,
+                foto: user.foto || null
             },
         });
     } catch (error) {
         console.error('Erro ao fazer login:', error);
         return res.status(500).json({ error: 'Erro interno ao fazer login' });
     }
-})
+});
 
-//redefinir senha 
+// Redefinir senha
 router.post("/redefinir", async (req: Request, res: Response) => {
     try {
-        const { email, password, confirmPassword } = req.body
-        const user = await prisma.user.findUnique({ where: { email } })
+        const { email, password, confirmPassword } = req.body;
+        const user = await prisma.user.findUnique({ where: { email } });
 
         if (!email || !password || !confirmPassword) {
-            return res.status(400).json({ error: "Preencha todos os campos!" })
+            return res.status(400).json({ error: "Preencha todos os campos!" });
         }
 
         if (password !== confirmPassword) {
-            return res.status(400).json({ error: "As senhas não coincidem" })
+            return res.status(400).json({ error: "As senhas não coincidem" });
         }
 
         if (!user) {
-            return res.status(404).json({ error: " Email não encontrado! " })
+            return res.status(404).json({ error: "Email não encontrado!" });
         }
 
         const novaPassword = await bcrypt.hash(password, 10);
 
         await prisma.user.update({
             where: { email },
-            data: {
-                password: novaPassword
-            }
+            data: { password: novaPassword }
         });
 
-        return res.status(200).json({ message: "Senha alterada com sucesso" })
+        return res.status(200).json({ message: "Senha alterada com sucesso" });
     } catch (error) {
-        return res.status(400).json({ error: " Erro interno no servidor" })
+        return res.status(400).json({ error: "Erro interno no servidor" });
     }
-})
+});
 
-//lista usuarios
+// Listar usuários
 router.get("/users", async (req: Request, res: Response) => {
     try {
-        const usuarios = await prisma.user.findMany();
+        const usuarios = await prisma.user.findMany({
+            select: { id: true, name: true, email: true, foto: true }
+        });
         return res.json({ usuarios });
     } catch (error) {
         console.error('Erro ao buscar usuários:', error);
         return res.status(500).json({ error: 'Erro interno ao buscar usuários' });
+    }
+});
+
+// Buscar dados e foto de um usuário específico
+router.get("/users/:id", async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    try {
+        const usuario = await prisma.user.findUnique({
+            where: { id },
+            select: { id: true, name: true, email: true, foto: true }
+        });
+
+        if (!usuario) {
+            return res.status(404).json({ error: "Usuário não encontrado" });
+        }
+
+        return res.json(usuario);
+    } catch (error) {
+        console.error("Erro ao buscar usuário:", error);
+        return res.status(500).json({ error: "Erro ao buscar usuário" });
+    }
+});
+
+// Atualizar foto de perfil diretamente no banco
+router.put("/users/:id/foto", async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    const { foto } = req.body;
+
+    if (!foto) {
+        return res.status(400).json({ error: "Nenhuma imagem enviada." });
+    }
+
+    try {
+        const atualizado = await prisma.user.update({
+            where: { id },
+            data: { foto },
+            select: { id: true, name: true, email: true, foto: true }
+        });
+        return res.json(atualizado);
+    } catch (error) {
+        console.error("Erro ao salvar foto:", error);
+        return res.status(500).json({ error: "Erro ao salvar foto no banco." });
     }
 });
 

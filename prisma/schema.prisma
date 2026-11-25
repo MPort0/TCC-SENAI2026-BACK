@@ -17,6 +17,7 @@ model user {
   name        String
   email       String       @unique
   password    String
+  foto        String?
   devolutivas devolutiva[]
   curriculos  curriculo[]
 }
